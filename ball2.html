@@ -1,0 +1,147 @@
+
+<html>
+
+
+<body >
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+        var x=100;
+        var y=200;
+        var radius = 30;
+    
+        var width = 1200;
+        var height = 500;
+        var num_balls = 2;
+        var non_moving = 1;
+    
+        var context, barContext;
+        var points = [];
+    
+        function clamp(num, min, max) {
+            return num <= min ? min : num >= max ? max : num;
+        }
+    
+        function update_barContext(time1){
+            var barContext = barCanvas.getContext('2d');
+            barContext.strokeStyle = "purple";
+            barContext.beginPath();
+            var reds = 0;
+            for (point of points) {
+                reds += (point.color=="red");
+            }
+            barContext.moveTo(50+time1/3, 140);
+            barContext.lineTo(50+time1/3, (points.length-reds)/points.length*140);
+            //console.log(points.length,reds)
+            barContext.stroke();
+        }
+    
+        var max_i=0;
+        function init(balls)
+        {
+            myCanvas.height=height;
+            myCanvas.width=width;
+            barCanvas.height=150;
+            barCanvas.width=width;
+            points = []
+            time1 = 0
+    
+            context= myCanvas.getContext('2d');
+            barContext= barCanvas.getContext('2d');
+            context.clearRect(0,0,width ,height)
+            barContext.clearRect(0,0,width ,height)
+    
+            for (i=0; i<balls ;i++) {
+                var x = clamp(Math.floor(Math.random() * width), 0+radius, width-radius);
+                var y = clamp(Math.floor(Math.random() * height), 0+radius, height-radius);
+                points.push(new Ball(x, y, i));
+                max_i++;
+            }
+            update_barContext(100);
+            setInterval(draw,30);
+        }
+        
+        function Ball(x, y, id) {
+            this.x = x;
+            this.y = y;
+            this.id = id;
+            this.dx = Math.floor(Math.random() * 11)-5;
+            this.dy = Math.floor(Math.random() * 11)-5;
+            var randomColor = '#'+Math.floor(Math.random()*16777215).toString(16);
+            this.color = randomColor;
+            //this.color = "lightblue";
+        }
+    
+        function newBall(x,y) {
+            return new Ball(x,y,max_inewBallnewBall++);
+        }
+
+        var wall1 = [100, 100, 900, 100];
+        var time1 = 0;
+    
+        function draw() {
+            time1++;
+            context.clearRect(0,0,width ,height)
+            var i = 0;
+            for (point of points) {
+                // Draws a circle of radius 20 at the coordinates 100,100 on the canvas
+                context.beginPath();
+                context.fillStyle=point.color;
+                context.arc(point.x,point.y,radius,0,Math.PI*2,true);
+    
+                var hit = 0;
+                for (p2 of points) {
+                    if (point.id!=p2.id && (Math.abs(point.x-p2.x))<radius*2 && (Math.abs(point.y-p2.y))<radius*2) {
+                        point.dx = -point.dx;
+                        point.dy = -point.dy;
+                        hit = 1;
+                        break;
+                    }
+                }
+                if (hit ==0) {
+                    if( point.x<0+radius)  point.dx=Math.abs(point.dx);
+                    else if( point.x>width-radius) point.dx=-Math.abs(point.dx) ;
+                    if( point.y<0+radius)  point.dy=Math.abs(point.dy);
+                    else if( point.y>height-radius) point.dy=-Math.abs(point.dy) ;
+                }
+                dx = point.dx;
+                dy = point.dy;
+                
+                point.x+=dx; 
+                point.y+=dy;
+
+                context.closePath();
+                context.fill();
+                i++;
+    
+                update_barContext(time1);
+            }
+        }
+    
+        function init_from_form() {
+            var balls = document.getElementById("form_num_balls").value;
+            if (balls!="") {
+                init(balls);
+            }
+        }
+    
+        $(document).ready(function() {
+            init(num_balls);
+        });
+    
+        </script>
+    
+    <form>
+        Number of balls: <input type="text" id="form_num_balls" name="Number of balls"  />
+        <input type="submit" name="submit" onclick="init_from_form(); return false;" />
+    </form>
+
+    <button type="button" onclick="init(num_balls)">Redo!</button>
+    <button type="button" onclick="points.push(newBall(width/2, height/2));">Add a ball!</button>
+
+    <br><br>
+    <canvas id="barCanvas" style="border:3px solid green"> </canvas>
+    <canvas id="myCanvas"style="border:3px solid #000000"> </canvas>
+
+
+</body>
+</html>
